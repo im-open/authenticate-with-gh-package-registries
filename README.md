@@ -1,72 +1,44 @@
-# composite-run-steps-action-template
+# authenticate-with-gh-packages-for-nuget
 
-This template can be used to quickly start a new custom composite-run-steps action repository.  Click the `Use this template` button at the top to get started.
+This action creates package source entries in the closest nuget.config file for each organization provided.  After executing this action, subsequent steps will be able to pull nuget packages from each provided organization's GitHub Packages Registry.  
 
-## TODOs
-- Readme
-  - [ ] Update the Inputs section with the correct action inputs
-  - [ ] Update the Outputs section with the correct action outputs
-  - [ ] Update the Example section with the correct usage   
-- action.yml
-  - [ ] Fill in the correct name, description, inputs and outputs and implement steps
-- CODEOWNERS
-  - [ ] Update as appropriate
-- Repository Settings
-  - [ ] On the *Options* tab check the box to *Automatically delete head branches*
-  - [ ] On the *Options* tab update the repository's visibility
-  - [ ] On the *Branches* tab add a branch protection rule
-    - [ ] Check *Require pull request reviews before merging*
-    - [ ] Check *Dismiss stale pull request approvals when new commits are pushed*
-    - [ ] Check *Require review from Code Owners*
-    - [ ] Check *Include Administrators*
-  - [ ] On the *Manage Access* tab add the appropriate groups
-- About Section (accessed on the main page of the repo, click the gear icon to edit)
-  - [ ] The repo should have a short description of what it is for
-  - [ ] Add one of the following topic tags:
-    | Topic Tag       | Usage                                    |
-    | --------------- | ---------------------------------------- |
-    | az              | For actions related to Azure             |
-    | code            | For actions related to building code     |
-    | certs           | For actions related to certificates      |
-    | db              | For actions related to databases         |
-    | git             | For actions related to Git               |
-    | iis             | For actions related to IIS               |
-    | microsoft-teams | For actions related to Microsoft Teams   |
-    | svc             | For actions related to Windows Services  |
-    | jira            | For actions related to Jira              |
-    | meta            | For actions related to running workflows |
-    | pagerduty       | For actions related to PagerDuty         |
-    | test            | For actions related to testing           |
-    | tf              | For actions related to Terraform         |
-  - [ ] Add any additional topics for an action if they apply    
-    
+The package source entry includes package source credentials which use the GitHub personal access token provided as an argument.  The PAT needs to have the `read:packages` scope and should be authorized for each of the organizations provided, otherwise it will not be able to retrieve the packages.
+
+This action has been customized for `im-open`'s needs, so outside users will need to override the default organizations.
+
+For more information around authenticating with GitHub Packages see [Authenticating to GitHub Packages] and [dotnet nuget add source].
 
 ## Inputs
-| Parameter | Is Required | Description           |
-| --------- | ----------- | --------------------- |
-| `input-1` | true        | Description goes here |
-| `input-2` | false       | Description goes here |
+| Parameter      | Is Required | Default                                                                                    | Description                                                                                                                                                                            |
+| -------------- | ----------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-token` | true        | N/A                                                                                        | A personal access token with access to each of the organizations that sources will be added for.<br/>Must have `read:packages` scope and be authorized to work with the provided orgs. |
+| `orgs`         | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that package sources should be added for.                                                                                                      |
 
 ## Outputs
-| Output     | Description           |
-| ---------- | --------------------- |
-| `output-1` | Description goes here |
+No Outputs
 
 ## Example
 
 ```yml
-# TODO: Fill in the correct usage
+name: 'Build App with GitHub Packages Dependencies'
+
+on:
+  push:
+    
 jobs:
-  job1:
-    runs-on: [self-hosted]
+  windows-restore-and-run:
+    runs-on: windows-2019 # Works on Ubuntu-20.04 as well
+    
     steps:
       - uses: actions/checkout@v2
 
-      - name: Add the action here
-        uses: im-open/this-repo@v1.0.0
+      - name: Authenticate with GitHub Packages on Windows
+        uses: im-open/authenticate-with-gh-packages-for-nuget@v1.0.0
         with:
-          input-1: 'abc'
-          input-2: '123
+          github-token: ${{ secrets.INSTALL_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
+          orgs: 'myorg2,myorg2,octocoder'
+
+      - run: dotnet restore
 ```
 
 
@@ -77,3 +49,6 @@ This project has adopted the [im-open's Code of Conduct](https://github.com/im-o
 ## License
 
 Copyright &copy; 2021, Extend Health, LLC. Code released under the [MIT license](LICENSE).
+
+[Authenticating to GitHub Packages]: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry#authenticating-to-github-packages
+[dotnet nuget add source]: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-add-source

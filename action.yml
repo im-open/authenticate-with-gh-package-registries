@@ -1,22 +1,18 @@
-name: 'Composite Run Steps Action Template'
+name: 'authenticate-with-gh-packages-for-nuget'
 
-description: 'Add description here'
+description: 'An action that adds one or more package sources with credentials to the .nuget config for use with package restores'
 
 inputs:
-  input-1:
-    description: 'Add a description here'
+  github-token:
+    description: 'A personal access token with access to each of the organizations that sources will be added for.  Must have read:packages scope.'
     required: true
-
-outputs:
-  output-1:
-    description: 'Add description here'
-    value: '${{ steps.step_1.outputs.world }}'
+  orgs:
+    description: 'A comma-separated list of organizations that package sources should be added for.'
+    required: true
+    default: 'im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat'
 
 runs:
   using: 'composite'
   steps:
-    - name: Step 1
-      id: step_1
-      shell: bash
-      run: |
-        echo "::set-output name=hello::world"
+    - shell: pwsh
+      run: ${{ github.action_path }}/sources.ps1 -token "${{ inputs.github-token }}" -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
