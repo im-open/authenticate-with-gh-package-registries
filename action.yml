@@ -1,10 +1,10 @@
-name: 'authenticate-with-gh-packages-for-nuget'
+name: 'authenticate-with-gh-package-registries'
 
 description: 'An action that adds one or more package sources with credentials to the .nuget config for use with package restores'
 
 inputs:
-  github-token:
-    description: 'A personal access token with access to each of the organizations that sources will be added for.  Must have read:packages scope.'
+  read-pkg-token:
+    description: 'A personal access token with the read:packages scope that has been authorized for use with each provided org and is from an account that has write access to the repo containing the package.'
     required: true
   orgs:
     description: 'A comma-separated list of organizations that package sources should be added for.'
@@ -14,5 +14,26 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - shell: pwsh
-      run: ${{ github.action_path }}/sources.ps1 -token "${{ inputs.github-token }}" -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
+    # Nuget **********************
+    - name: nuget - add soures
+      shell: pwsh
+      run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
+
+    # NPM ************************
+    - name: npm - delete existing authToken
+      shell: pwsh
+      run: npm config delete //npm.pkg.github.com/:_authToken
+      env:
+        # If an env var is used in .npmrc and you try to do anything with it, an error is thrown.
+        # Add some placeholders here so we can delete the value so subsequent steps can proceed.
+        READ_PACKAGE_TOKEN: 'placeholder'
+        GITHUB_TOKEN: 'placeholder'
+
+    - name: npm - add registries
+      shell: pwsh
+      run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
+
+    # All ************************
+    - name: Create READ_PACKAGE_TOKEN env variable
+      shell: bash
+      run: echo "READ_PACKAGE_TOKEN=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
