@@ -4,7 +4,7 @@ description: 'An action that adds one or more package sources with credentials t
 
 inputs:
   read-pkg-token:
-    description: 'A personal access token with the read:packages scope that has been authorized for use with each provided org and is from an account that has write access to the repo containing the package.'
+    description: 'A personal access token with the read:packages scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package.'
     required: true
   orgs:
     description: 'A comma-separated list of organizations that package sources should be added for.'
