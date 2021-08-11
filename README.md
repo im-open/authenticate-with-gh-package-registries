@@ -66,12 +66,12 @@ The action modifies the `.npmrc` file by adding an authToken for npm.pkg.github.
 The registry entries tell npm which feed to look at for each scoped package type.  The last line with the  `_authToken` uses the `READ_PACKAGE_TOKEN` environment variable which has been populated with the supplied PAT.  This environment variable will be set for all subsequent steps in the job, but it will not be set for other jobs.
 
 ## PAT Requirements
-The PAT needs to have the `read:packages` scope, it should be authorized for each of the organizations provided and the account the PAT belongs to must have `write` access to the repository that contains the package, otherwise attempts to install packages from that feed will fail.  It's strongly recommended to use a separate PAT for installing packages that only has the `read:packages` scope.
+The PAT needs to have the `read:packages` scope, it should be authorized for each of the organizations provided and the account the PAT belongs to must have `read` access to the repository that contains the package, otherwise attempts to install packages from that feed will fail.  It's strongly recommended to use a separate PAT for installing packages that only has the `read:packages` scope.
 
 ## Inputs
 | Parameter        | Is Required | Default                                                                                    | Description                                                                                                                                                                                     |
 | ---------------- | ----------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read-pkg-token` | true        | N/A                                                                                        | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has write access to the repo containing the package. |
+| `read-pkg-token` | true        | N/A                                                                                        | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
 | `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                              |  |
 
 ## Outputs
