@@ -95,7 +95,7 @@ jobs:
       - name: Authenticate with GitHub Packages on Windows
         uses: im-open/authenticate-with-gh-package-registries@v1.0.1
         with:
-          github-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
+          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
 
       - run: npm install  # .npmrc contains contains the creds for connecting and installing npm packages from GPR
