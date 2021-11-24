@@ -8,7 +8,9 @@ For more information around authenticating with GitHub Packages see
 - [Authenticating to GitHub Packages - npm] 
 - [npm private packages in CI/CD workflow]
   
-## Table of Contents
+
+## Index
+
 - [nuget](#nuget)
 - [npm](#npm)
 - [PAT Requirements](#pat-requirements)
