@@ -8,13 +8,17 @@ For more information around authenticating with GitHub Packages see
 - [Authenticating to GitHub Packages - npm] 
 - [npm private packages in CI/CD workflow]
   
-## Table of Contents
+
+## Index
+
 - [nuget](#nuget)
 - [npm](#npm)
 - [PAT Requirements](#pat-requirements)
 - [Inputs](#inputs)
 - [Outputs](#outputs)
 - [Usage Example](#usage-example)
+- [Contributing](#contributing)
+  - [Incrementing the Version](#incrementing-the-version)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
@@ -69,10 +73,10 @@ The registry entries tell npm which feed to look at for each scoped package type
 The PAT needs to have the `read:packages` scope, it should be authorized for each of the organizations provided and the account the PAT belongs to must have `read` access to the repository that contains the package, otherwise attempts to install packages from that feed will fail.  It's strongly recommended to use a separate PAT for installing packages that only has the `read:packages` scope.
 
 ## Inputs
-| Parameter        | Is Required | Default                                                                                    | Description                                                                                                                                                                                     |
-| ---------------- | ----------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parameter        | Is Required | Default                                                                                    | Description                                                                                                                                                                                    |
+| ---------------- | ----------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read-pkg-token` | true        | N/A                                                                                        | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
-| `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                              |  |
+| `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |  |
 
 ## Outputs
 No Outputs
@@ -93,7 +97,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Authenticate with GitHub Packages on Windows
-        uses: im-open/authenticate-with-gh-package-registries@v1.0.1
+        uses: im-open/authenticate-with-gh-package-registries@v1.0.5
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
@@ -105,6 +109,24 @@ jobs:
 ```
 
 
+## Contributing
+
+When creating new PRs please ensure:
+1. For major or minor changes, at least one of the commit messages contains the appropriate `+semver:` keywords listed under [Incrementing the Version](#incrementing-the-version).
+2. The `README.md` example has been updated with the new version.  See [Incrementing the Version](#incrementing-the-version).
+3. The action code does not contain sensitive information.
+
+### Incrementing the Version
+
+This action uses [git-version-lite] to examine commit messages to determine whether to perform a major, minor or patch increment on merge.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
+| Increment Type | Commit Message Fragment                     |
+| -------------- | ------------------------------------------- |
+| major          | +semver:breaking                            |
+| major          | +semver:major                               |
+| minor          | +semver:feature                             |
+| minor          | +semver:minor                               |
+| patch          | *default increment type, no comment needed* |
+
 ## Code of Conduct
 
 This project has adopted the [im-open's Code of Conduct](https://github.com/im-open/.github/blob/master/CODE_OF_CONDUCT.md).
@@ -113,6 +135,7 @@ This project has adopted the [im-open's Code of Conduct](https://github.com/im-o
 
 Copyright &copy; 2021, Extend Health, LLC. Code released under the [MIT license](LICENSE).
 
+[git-version-lite]: https://github.com/im-open/git-version-lite
 [Authenticating to GitHub Packages - nuget]: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry#authenticating-to-github-packages
 [dotnet nuget add source]: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-add-source
 [Authenticating to GitHub Packages - npm]: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages
