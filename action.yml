@@ -10,17 +10,27 @@ inputs:
     description: 'A comma-separated list of organizations that package sources should be added for.'
     required: true
     default: 'im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat'
+  set-nuget:
+    description: 'Add registries for nuget'
+    required: true
+    default: 'true'
+  set-npm:
+    description: 'Add registries for npm'
+    required: true
+    default: 'true'
 
 runs:
   using: 'composite'
   steps:
     # Nuget **********************
     - name: nuget - add soures
+      if: inputs.set-nuget == 'true'
       shell: pwsh
       run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
 
     # NPM ************************
     - name: npm - delete existing authToken
+      if: inputs.set-npm == 'true'
       shell: pwsh
       run: npm config delete //npm.pkg.github.com/:_authToken
       env:
@@ -30,6 +40,7 @@ runs:
         GITHUB_TOKEN: 'placeholder'
 
     - name: npm - add registries
+      if: inputs.set-npm == 'true'
       shell: pwsh
       run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
 
