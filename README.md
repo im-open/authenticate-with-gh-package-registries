@@ -79,10 +79,12 @@ The PAT needs to have the `read:packages` scope, it should be authorized for eac
 
 ## Inputs
 
-| Parameter        | Is Required | Default                                                                                    | Description                                                                                                                                                                                    |
-| ---------------- | ----------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| `read-pkg-token` | true        | N/A                                                                                        | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
-| `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |     |
+| Parameter        | Is Required | Default                                                                                      | Description                                                                                                                                                                                    |
+| ---------------- | ----------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read-pkg-token` | true        | N/A                                                                                          | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
+| `orgs`           | true        | `im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat` | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |
+| `set-nuget`      | true        | `true` | Set nuget registration. | |
+| `orgs`           | true        | `true` | Set npm registration.   | |
 
 ## Outputs
 
@@ -105,7 +107,7 @@ jobs:
 
       - name: Authenticate with GitHub Packages on Windows
         # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.0.7
+        uses: im-open/authenticate-with-gh-package-registries@v1.0.6
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
