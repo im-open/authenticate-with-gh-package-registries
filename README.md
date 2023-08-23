@@ -105,7 +105,7 @@ jobs:
 
       - name: Authenticate with GitHub Packages on Windows
         # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.0.6
+        uses: im-open/authenticate-with-gh-package-registries@v1.0.7
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
