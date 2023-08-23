@@ -84,7 +84,7 @@ The PAT needs to have the `read:packages` scope, it should be authorized for eac
 | `read-pkg-token` | true        | N/A                                                                                          | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
 | `orgs`           | true        | `im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat` | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |
 | `set-nuget`      | true        | `true` | Set nuget registration. | |
-| `orgs`           | true        | `true` | Set npm registration.   | |
+| `set-npm`        | true        | `true` | Set npm registration.   | |
 
 ## Outputs
 
