@@ -1,0 +1,13 @@
+{
+  "name": "@im-open/test-consumer",
+  "version": "1.1.0",
+  "description": "A project for consuming internal packages on the github registry",
+  "main": "main.js",
+  "scripts": {
+    "build": "npm install"
+  },
+  "author": "wtw",
+  "dependencies": {
+    "@im-open/test-pkg-npm": "1.0.0"
+  }
+}
