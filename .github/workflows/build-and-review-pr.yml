@@ -68,13 +68,14 @@ jobs:
       WORKING_DIRECTORY: test/nuget
 
     steps:
-      - uses: actions/checkout@v3
-
       #--------------------------------------
       # SETUP
       #--------------------------------------
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
+
+      - name: Setup - Checkout the action
+        uses: actions/checkout@v3
 
       - name: Setup - List current nuget sources
         if: always()
@@ -96,7 +97,7 @@ jobs:
       - name: Then the outcome should be failure
         if: always()
         run: ./test/assert-values-match.sh --name "step outcome" --expected "failure" --actual "${{ steps.restore-failure.outcome }}"
-      
+
       #--------------------------------------------
       # AUTHENTICATED BUT FLAG NOT SET
       #--------------------------------------------
@@ -122,7 +123,7 @@ jobs:
       - name: Then the outcome should be failure
         if: always()
         run: ./test/assert-values-match.sh --name "step outcome" --expected "failure" --actual "${{ steps.flag.outcome }}"
-      
+
       #--------------------------------------------
       # AUTHENTICATED
       #--------------------------------------------
@@ -148,11 +149,11 @@ jobs:
       - name: Then the outcome should be success
         if: always()
         run: ./test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.restore-success.outcome }}"
-      
+
       - name: And the READ_PKG_TOKEN env var should be the same as the one provided
         if: always()
         run: ./test/assert-values-match.sh --name "READ_PACKAGE_TOKEN env var" --expected "${{ secrets.READ_PKG_TOKEN }}" --actual "${{ env.READ_PACKAGE_TOKEN }}"
-      
+
       #--------------------------------------
       # TEARDOWN
       #--------------------------------------
@@ -162,7 +163,7 @@ jobs:
       - name: Teardown - List current nuget sources
         if: always()
         run: dotnet nuget list source
-      
+
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
 
@@ -173,13 +174,14 @@ jobs:
       WORKING_DIRECTORY: test/npm
 
     steps:
-      - uses: actions/checkout@v3
-
       #--------------------------------------
       # SETUP
       #--------------------------------------
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
+
+      - name: Setup - Checkout the action
+        uses: actions/checkout@v3
 
       - name: Setup - List default registry
         run: npm config get registry
@@ -192,7 +194,7 @@ jobs:
       #--------------------------------------------
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
-     
+
       - name: When npm install is run without authenticating to package registry
         if: always()
         id: install-failure
@@ -203,22 +205,22 @@ jobs:
       - name: Then the outcome should be failure
         if: always()
         run: ./test/assert-values-match.sh --name "step outcome" --expected "failure" --actual "${{ steps.install-failure.outcome }}"
-      
+
       #--------------------------------------------
       # AUTHENTICATED BUT FLAG NOT SET
       #--------------------------------------------
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
-      
+
       - name: When authenticating to npm package registry without setting the npm flag
         uses: ./
         if: always()
         with:
-          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }}  # This is a PAT with read:packages scope and is only authorized for im-open
+          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # This is a PAT with read:packages scope and is only authorized for im-open
           orgs: 'im-open'
           setup-npm: false
           setup-nuget: false
-      
+
       - name: And npm install is run
         if: always()
         id: flag
@@ -229,22 +231,22 @@ jobs:
       - name: Then the outcome should be failure
         if: always()
         run: ./test/assert-values-match.sh --name "step outcome" --expected "failure" --actual "${{ steps.flag.outcome }}"
-      
+
       #--------------------------------------------
       # AUTHENTICATED
       #--------------------------------------------
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
-      
+
       - name: When authenticating to npm package registry
         uses: ./
         if: always()
         with:
-          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }}  # This is a PAT with read:packages scope and is only authorized for im-open
+          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # This is a PAT with read:packages scope and is only authorized for im-open
           orgs: 'im-open'
           setup-npm: true
           setup-nuget: false
-      
+
       - name: And npm install is run
         if: always()
         id: install-success
@@ -255,11 +257,10 @@ jobs:
       - name: Then the outcome should be success
         if: always()
         run: ./test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.install-success.outcome }}"
-      
+
       - name: And the READ_PKG_TOKEN env var should be the same as the one provided
         if: always()
         run: ./test/assert-values-match.sh --name "READ_PACKAGE_TOKEN env var" --expected "${{ secrets.READ_PKG_TOKEN }}" --actual "${{ env.READ_PACKAGE_TOKEN }}"
-      
 
       #--------------------------------------
       # TEARDOWN
