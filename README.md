@@ -22,6 +22,7 @@ For more information around authenticating with GitHub Packages see
     - [Incrementing the Version](#incrementing-the-version)
     - [Source Code Changes](#source-code-changes)
     - [Updating the README.md](#updating-the-readmemd)
+    - [Tests](#tests)
   - [Code of Conduct](#code-of-conduct)
   - [License](#license)
 
@@ -83,9 +84,11 @@ The PAT needs to have the `read:packages` scope, it should be authorized for eac
 ## Inputs
 
 | Parameter        | Is Required | Default                                                                                    | Description                                                                                                                                                                                    |
-| ---------------- | ----------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+|------------------|-------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `read-pkg-token` | true        | N/A                                                                                        | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
-| `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |     |
+| `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |
+| `setup-nuget`    | false       | true                                                                                       | Flag indicating whether to set each org as a nuget source or not.  Accepts: `true\|false`.                                                                                                     |
+| `setup-npm`      | false       | true                                                                                       | Flag indicating whether to set each org as an  npm registry or not.  Accepts: `true\|false`.                                                                                                   |
 
 ## Outputs
 
@@ -108,7 +111,7 @@ jobs:
 
       - name: Authenticate with GitHub Packages on Windows
         # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.0.6
+        uses: im-open/authenticate-with-gh-package-registries@v1.1.0
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
@@ -126,6 +129,7 @@ When creating PRs, please review the following guidelines:
 - [ ] The action code does not contain sensitive information.
 - [ ] At least one of the commit messages contains the appropriate `+semver:` keywords listed under [Incrementing the Version] for major and minor increments.
 - [ ] The README.md has been updated with the latest version of the action.  See [Updating the README.md] for details.
+- [ ] Any tests in the [build-and-review-pr] workflow are passing
 
 ### Incrementing the Version
 
@@ -150,6 +154,12 @@ If a PR consists solely of non-source code changes like changes to the `README.m
 ### Updating the README.md
 
 If changes are made to the action's [source code], the [usage examples] section of this file should be updated with the next version of the action.  Each instance of this action should be updated.  This helps users know what the latest tag is without having to navigate to the Tags page of the repository.  See [Incrementing the Version] for details on how to determine what the next version will be or consult the first workflow run for the PR which will also calculate the next version.
+
+### Tests
+
+The [build-and-review-pr] workflow includes tests which are linked to a status check. That status check needs to succeed before a PR is merged to the default branch.  When a PR comes from a branch, the `GITHUB_TOKEN` has the necessary permissions required to run the tests successfully.  
+
+When a PR comes from a fork, the tests won't have the necessary permissions to run since the `GITHUB_TOKEN` only has `read` access for all scopes. When a PR comes from a fork, the changes should be reviewed, then merged into an intermediate branch by repository owners so tests can be run against the PR changes.  Once the tests have passed, changes can be merged into the default branch.
 
 ## Code of Conduct
 

@@ -1,6 +1,6 @@
 name: 'authenticate-with-gh-package-registries'
 
-description: 'An action that adds one or more package sources with credentials to the .nuget config for use with package restores'
+description: 'An action that adds one or more package sources with credentials to the .nuget config & .npmrc for use with package restores'
 
 inputs:
   read-pkg-token:
@@ -10,17 +10,28 @@ inputs:
     description: 'A comma-separated list of organizations that package sources should be added for.'
     required: true
     default: 'im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat'
+  setup-nuget:
+    description: 'Flag indicating whether to set each org as a nuget source.'
+    required: false
+    default: 'true'
+  setup-npm:
+    description: 'Flag indicating whether to set each org as an npm registry.'
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
+
   steps:
-    # Nuget **********************
-    - name: nuget - add soures
+    # nuget **********************
+    - name: nuget - add soures (if setup-nuget is true)
+      if: inputs.setup-nuget == 'true'
       shell: pwsh
       run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
 
-    # NPM ************************
-    - name: npm - delete existing authToken
+    # npm ************************
+    - name: npm - delete existing authToken (if setup-npm is true)
+      if: inputs.setup-npm == 'true'
       shell: pwsh
       run: npm config delete //npm.pkg.github.com/:_authToken
       env:
@@ -29,11 +40,12 @@ runs:
         READ_PACKAGE_TOKEN: 'placeholder'
         GITHUB_TOKEN: 'placeholder'
 
-    - name: npm - add registries
+    - name: npm - add registries (if setup-npm is true)
+      if: inputs.setup-npm == 'true'
       shell: pwsh
       run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
 
-    # All ************************
+    # Both ************************
     - name: Create READ_PACKAGE_TOKEN env variable
       shell: bash
       run: echo "READ_PACKAGE_TOKEN=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
