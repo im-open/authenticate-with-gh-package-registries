@@ -104,7 +104,7 @@ on:
 
 jobs:
   windows-restore-and-run:
-    runs-on: im-windows # Works on im-linux as well
+    runs-on: windows-2019 # Works on Ubuntu-20.04 as well
 
     steps:
       - uses: actions/checkout@v3
