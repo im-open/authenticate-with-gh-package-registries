@@ -2,7 +2,9 @@ Param(
     [parameter(Mandatory = $true)]
     [string]$rawOrgs,
     [parameter(Mandatory = $true)]
-    [string]$runnerOs
+    [string]$runnerOs,
+    [parameter(Mandatory = $false)]
+    [bool]$useSecondGithubToken = $false
 )
 
 Write-Host "Adding sources to a $runnerOs machine"
@@ -40,5 +42,11 @@ foreach ($org in $orgList)
     }
     
     Write-Host "Adding the $org source..."
-    dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN% --store-password-in-clear-text
+    if ($useSecondGithubToken) {
+        dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN_SECOND% --store-password-in-clear-text
+        Write-Host "Adding $org source with the secondary GitHub token environment variable: READ_PACKAGE_TOKEN_SECOND"
+    } else {
+        dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN% --store-password-in-clear-text
+        Write-Host "Adding $org source with the default GitHub token environment variable: READ_PACKAGE_TOKEN"
+    }
 }

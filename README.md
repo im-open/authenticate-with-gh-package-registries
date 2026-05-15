@@ -28,7 +28,7 @@ For more information around authenticating with GitHub Packages see
 
 ## nuget
 
-For nuget, this action creates package source entries in the closest `nuget.config` file for each organization provided. For each package source a corresponding credentials node is added. The password in each credentials node is set to the `READ_PACKAGE_TOKEN` environment variable. After executing this action, subsequent steps will be able to pull nuget packages from each provided organization's nuget package registry.
+For nuget, this action creates package source entries in the closest `nuget.config` file for each organization provided. For each package source a corresponding credentials node is added. By default, the password in each credentials node is set to the `READ_PACKAGE_TOKEN` environment variable. If `use-second-github-token` is `true`, the action uses `READ_PACKAGE_TOKEN_SECOND` instead. After executing this action, subsequent steps will be able to pull nuget packages from each provided organization's nuget package registry.
 
 This action modifies the closest `nuget.config`. This is what the `nuget.config` file will look like with some of the default orgs:
 
@@ -65,17 +65,19 @@ For npm, this action adds one or more scoped package registries for each organiz
 The action modifies the `.npmrc` file by adding an authToken for npm.pkg.github.com and adds a registry for each org provided. This is what the `.npmrc` file looks like with the default organizations:
 
 ```sh
+//npm.pkg.github.com/:_authToken=${READ_PACKAGE_TOKEN}
 @im-client:registry=https://npm.pkg.github.com
+@im-client:_authToken=${READ_PACKAGE_TOKEN}
 @im-customer-engagement:registry=https://npm.pkg.github.com
+@im-customer-engagement:_authToken=${READ_PACKAGE_TOKEN}
 @im-enrollment:registry=https://npm.pkg.github.com
 @im-funding:registry=https://npm.pkg.github.com
 @im-platform:registry=https://npm.pkg.github.com
 @im-practices:registry=https://npm.pkg.github.com
 @bc-swat:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${READ_PACKAGE_TOKEN}
 ```
 
-The registry entries tell npm which feed to look at for each scoped package type. The last line with the `_authToken` uses the `READ_PACKAGE_TOKEN` environment variable which has been populated with the supplied PAT. This environment variable will be set for all subsequent steps in the job, but it will not be set for other jobs.
+The registry entries tell npm which feed to look at for each scoped package type. The `_authToken` entries use `READ_PACKAGE_TOKEN` by default. If `use-second-github-token` is `true`, org-specific `_authToken` entries use `READ_PACKAGE_TOKEN_SECOND` instead. These environment variables are set for subsequent steps in the same job, but not for other jobs.
 
 ## PAT Requirements
 
@@ -89,12 +91,18 @@ The PAT needs to have the `read:packages` scope, it should be authorized for eac
 | `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |
 | `setup-nuget`    | false       | true                                                                                       | Flag indicating whether to set each org as a nuget source or not.  Accepts: `true\|false`.                                                                                                     |
 | `setup-npm`      | false       | true                                                                                       | Flag indicating whether to set each org as an  npm registry or not.  Accepts: `true\|false`.                                                                                                   |
+| `use-second-github-token` | false | false                                                                                      | Use `READ_PACKAGE_TOKEN_SECOND` instead of `READ_PACKAGE_TOKEN` for package auth entries. Enable this when you need to authenticate package pulls with a token from a second GitHub account.         |
+| `show-config-file-contents` | false | false                                                                                     | Flag indicating whether to output `~/.npmrc` and `~/.nuget/NuGet/NuGet.Config` contents to workflow logs for debugging. Accepts: `true\|false`.                                                  |
+
+If you set `use-second-github-token: true`, pass the second account's PAT through `read-pkg-token` (for example, `secrets.READ_PKG_TOKEN_SECOND`).
+
+If you set `show-config-file-contents: true`, the action prints config file contents after setup steps. Use this only for troubleshooting and avoid enabling it in normal runs.
 
 ## Outputs
 
 No Outputs
 
-## Usage Examples
+## Usage Examples 1
 
 ```yml
 name: 'Build App with GitHub Packages Dependencies'
@@ -111,10 +119,47 @@ jobs:
 
       - name: Authenticate with GitHub Packages on Windows
         # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.1.0
+        uses: im-open/authenticate-with-gh-package-registries@v1.2.0
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
+
+      - run: npm install # .npmrc contains contains the creds for connecting and installing npm packages from GPR
+      - run: npm test
+
+      - run: dotnet restore # nuget.config contains the creds for connecting and restoring nuget packages from GRP
+```
+
+## Usage Example with use-second-github-token input
+
+```yml
+name: 'Build App with GitHub Packages Dependencies in multiple github enterprises / github accounts'
+
+on:
+  push:
+
+jobs:
+  windows-restore-and-run:
+    runs-on: windows-2019 # Works on Ubuntu-20.04 as well
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Authenticate with GitHub Packages on Windows
+        # You may also reference the major or major.minor version
+        uses: im-open/authenticate-with-gh-package-registries@v1.2.0
+        with:
+          read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
+          orgs: 'my-first-account-org'
+
+      - name: Authenticate with GitHub Packages on Windows
+        # You may also reference the major or major.minor version
+        uses: im-open/authenticate-with-gh-package-registries@v1.2.0
+        with:
+          read-pkg-token: ${{ secrets.READ_PKG_TOKEN_SECOND }} # Token has read:packages scope and is authorized for each of the orgs
+          orgs: 'my-second-account-org'
+          use-second-github-token: true
+          show-config-file-contents: true # to see if the file is correct.  Not needed once pipeline is working properly.  Use for troubleshooting.
 
       - run: npm install # .npmrc contains contains the creds for connecting and installing npm packages from GPR
       - run: npm test
