@@ -3,3 +3,5 @@ node_modules/
 obj/
 bin/
 node_modules/
+
+**/*.csproj.lscache

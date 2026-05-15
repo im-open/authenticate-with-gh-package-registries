@@ -13,11 +13,23 @@ inputs:
   setup-nuget:
     description: 'Flag indicating whether to set each org as a nuget source.'
     required: false
-    default: 'true'
+    default: true
+    type: boolean
   setup-npm:
     description: 'Flag indicating whether to set each org as an npm registry.'
     required: false
-    default: 'true'
+    default: true
+    type: boolean
+  use-second-github-token:
+    description: 'Use the secondary environment variable name (READ_PACKAGE_TOKEN_SECOND) instead of the default (READ_PACKAGE_TOKEN). Helpful when authenticating packages with a token from a second GitHub account.'
+    required: false
+    default: false
+    type: boolean
+  show-config-file-contents:
+    description: 'Flag indicating whether to output the contents of the config files to the logs for debugging purposes.'
+    required: false
+    default: false
+    type: boolean
 
 runs:
   using: 'composite'
@@ -27,7 +39,7 @@ runs:
     - name: nuget - add soures (if setup-nuget is true)
       if: inputs.setup-nuget == 'true'
       shell: pwsh
-      run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
+      run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}" -useSecondGithubToken ${{ inputs.use-second-github-token == 'true' && '$True' || '$False' }}
 
     # npm ************************
     - name: npm - delete existing authToken (if setup-npm is true)
@@ -38,14 +50,31 @@ runs:
         # If an env var is used in .npmrc and you try to do anything with it, an error is thrown.
         # Add some placeholders here so we can delete the value so subsequent steps can proceed.
         READ_PACKAGE_TOKEN: 'placeholder'
+        READ_PACKAGE_TOKEN_SECOND: 'placeholder'
         GITHUB_TOKEN: 'placeholder'
 
     - name: npm - add registries (if setup-npm is true)
       if: inputs.setup-npm == 'true'
       shell: pwsh
-      run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}"
+      run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}" -useSecondGithubToken ${{ inputs.use-second-github-token == 'true' && '$True' || '$False' }}
 
     # Both ************************
     - name: Create READ_PACKAGE_TOKEN env variable
+      if: ${{ inputs.use-second-github-token != 'true' }}
       shell: bash
       run: echo "READ_PACKAGE_TOKEN=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
+
+    - name: Create READ_PACKAGE_TOKEN_SECOND env variable
+      if: ${{ inputs.use-second-github-token == 'true' }}
+      shell: bash
+      run: echo "READ_PACKAGE_TOKEN_SECOND=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
+
+    - name: Output npmrc file contents for debugging
+      if: inputs.setup-npm == 'true' && inputs.show-config-file-contents == 'true'
+      shell: bash
+      run: cat ~/.npmrc
+
+    - name: Output nuget config file contents for debugging
+      if: inputs.setup-nuget == 'true' && inputs.show-config-file-contents == 'true'
+      shell: bash
+      run: cat ~/.nuget/NuGet/NuGet.Config
