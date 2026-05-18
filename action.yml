@@ -71,10 +71,12 @@ runs:
 
     - name: Output npmrc file contents for debugging
       if: inputs.setup-npm == 'true' && inputs.show-config-file-contents == 'true'
+      continue-on-error: true
       shell: bash
       run: cat ~/.npmrc
 
     - name: Output nuget config file contents for debugging
       if: inputs.setup-nuget == 'true' && inputs.show-config-file-contents == 'true'
+      continue-on-error: true
       shell: bash
       run: cat ~/.nuget/NuGet/NuGet.Config
