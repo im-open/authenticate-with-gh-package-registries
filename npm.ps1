@@ -1,7 +1,7 @@
 Param(
     [parameter(Mandatory = $true)]
     [string]$rawOrgs,
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $false)]
     [string]$rawOrgsLegacy,
     [parameter(Mandatory = $true)]
     [string]$runnerOs
@@ -10,7 +10,6 @@ Param(
 Write-Host "Adding registries to a $runnerOs machine"
 $orgList = $rawOrgs.Split(',');
 $orgListLegacy = $rawOrgsLegacy.Split(',');
-
 
 foreach ($org in $orgList)
 {
