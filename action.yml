@@ -8,15 +8,16 @@ inputs:
     required: true
   read-pkg-token-legacy:
     description: 'A legacy organization personal access token with the read:packages scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package.'
-    required: true
+    required: false
+    default: ''
   orgs:
     description: 'A comma-separated list of organizations that package sources should be added for.'
     required: true
     default: 'wtw-bdoim'
   orgs-legacy:
     description: 'A comma-separated list of legacy organizations that package sources should be added for.'
-    required: true
-    default: 'im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat'
+    required: false
+    default: ''
   setup-nuget:
     description: 'Flag indicating whether to set each org as a nuget source.'
     required: false
