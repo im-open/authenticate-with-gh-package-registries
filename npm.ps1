@@ -15,19 +15,29 @@ $orgListLegacy = $rawOrgsLegacy.Split(',');
 foreach ($org in $orgList)
 {
     $org = $org.Trim();
+    if ([string]::IsNullOrWhiteSpace($org)) { continue }
     $registry = ":registry"
+    $authToken = ":_authToken"
     Write-Host "Adding the $org$registry registry entry..."
     npm config delete "@$org$registry" 
     npm config set "@$org$registry" https://npm.pkg.github.com
+    Write-Host "Adding the $org$authToken auth token entry..."
+    npm config delete "@$org$authToken"
+    npm config set "@$org$authToken" '${READ_PACKAGE_TOKEN}'
 }
 
 foreach ($org in $orgListLegacy)
 {
     $org = $org.Trim();
+    if ([string]::IsNullOrWhiteSpace($org)) { continue }
     $registry = ":registry"
+    $authToken = ":_authToken"
     Write-Host "Adding the $org$registry registry entry..."
     npm config delete "@$org$registry" 
     npm config set "@$org$registry" https://npm.pkg.github.com
+    Write-Host "Adding the $org$authToken auth token entry..."
+    npm config delete "@$org$authToken"
+    npm config set "@$org$authToken" '${READ_PACKAGE_TOKEN_LEGACY}'
 }
 
 # This sets the _authToken for github packages to the literal value: ${READ_PACKAGE_TOKEN}
