@@ -6,8 +6,15 @@ inputs:
   read-pkg-token:
     description: 'A personal access token with the read:packages scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package.'
     required: true
+  read-pkg-token-legacy:
+    description: 'A legacy organization personal access token with the read:packages scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package.'
+    required: true
   orgs:
     description: 'A comma-separated list of organizations that package sources should be added for.'
+    required: true
+    default: 'wtw-bdoim'
+  orgs-legacy:
+    description: 'A comma-separated list of legacy organizations that package sources should be added for.'
     required: true
     default: 'im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat'
   setup-nuget:
@@ -20,11 +27,10 @@ inputs:
     required: false
     default: true
     type: boolean
-  use-second-github-token:
-    description: 'Use the secondary environment variable name (READ_PACKAGE_TOKEN_SECOND) instead of the default (READ_PACKAGE_TOKEN). Helpful when authenticating packages with a token from a second GitHub account.'
+  nuget-package-source-mapping-pattern:
+    description: 'A comma separated list of patterns with org names to use for nuget source mapping. IE my-org:Mktp* . This is the mapping for github packages orgs.'
     required: false
-    default: false
-    type: boolean
+    default: null
   show-config-file-contents:
     description: 'Flag indicating whether to output the contents of the config files to the logs for debugging purposes.'
     required: false
@@ -39,7 +45,7 @@ runs:
     - name: nuget - add soures (if setup-nuget is true)
       if: inputs.setup-nuget == 'true'
       shell: pwsh
-      run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}" -useSecondGithubToken ${{ inputs.use-second-github-token == 'true' && '$True' || '$False' }}
+      run: ${{ github.action_path }}/nuget.ps1 -rawOrgs "${{ inputs.orgs }}" -rawOrgsLegacy "${{ inputs.orgs-legacy }}" -runnerOs "${{ runner.os }}" -nugetPackageSourceMappingPattern "${{ inputs.nuget-package-source-mapping-pattern }}"
 
     # npm ************************
     - name: npm - delete existing authToken (if setup-npm is true)
@@ -50,33 +56,58 @@ runs:
         # If an env var is used in .npmrc and you try to do anything with it, an error is thrown.
         # Add some placeholders here so we can delete the value so subsequent steps can proceed.
         READ_PACKAGE_TOKEN: 'placeholder'
-        READ_PACKAGE_TOKEN_SECOND: 'placeholder'
+        READ_PACKAGE_TOKEN_LEGACY: 'placeholder'
         GITHUB_TOKEN: 'placeholder'
 
     - name: npm - add registries (if setup-npm is true)
       if: inputs.setup-npm == 'true'
       shell: pwsh
-      run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -runnerOs "${{ runner.os }}" -useSecondGithubToken ${{ inputs.use-second-github-token == 'true' && '$True' || '$False' }}
+      run: ${{ github.action_path }}/npm.ps1 -rawOrgs "${{ inputs.orgs }}" -rawOrgsLegacy "${{ inputs.orgs-legacy }}" -runnerOs "${{ runner.os }}"
 
     # Both ************************
     - name: Create READ_PACKAGE_TOKEN env variable
-      if: ${{ inputs.use-second-github-token != 'true' }}
       shell: bash
-      run: echo "READ_PACKAGE_TOKEN=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
-
-    - name: Create READ_PACKAGE_TOKEN_SECOND env variable
-      if: ${{ inputs.use-second-github-token == 'true' }}
-      shell: bash
-      run: echo "READ_PACKAGE_TOKEN_SECOND=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
+      run: |
+        echo "READ_PACKAGE_TOKEN=${{ inputs.read-pkg-token }}" >> $GITHUB_ENV
+        echo "READ_PACKAGE_TOKEN_LEGACY=${{ inputs.read-pkg-token-legacy }}" >> $GITHUB_ENV
 
     - name: Output npmrc file contents for debugging
       if: inputs.setup-npm == 'true' && inputs.show-config-file-contents == 'true'
       continue-on-error: true
       shell: bash
-      run: cat ~/.npmrc
+      run: |
+        echo "Standard List:"
+        npm config list
+
+        echo ""
+        echo ""
+        echo "Long List:"
+        npm config ls -l
 
     - name: Output nuget config file contents for debugging
       if: inputs.setup-nuget == 'true' && inputs.show-config-file-contents == 'true'
       continue-on-error: true
       shell: bash
-      run: cat ~/.nuget/NuGet/NuGet.Config
+      run: |
+        text="$(dotnet nuget config paths)"
+        # Set space as the delimiter
+        #IFS=$'\r\n'
+        IFS=''
+        delimiter=$'\r\n'
+        string=$text$delimiter
+        # Read the split words into an array
+        # based on space delimiter
+        newarray=()
+        while [[ $string ]]; do
+        newarray+=( "${string%%"$delimiter"*}" )
+        string=${string#*"$delimiter"}
+        done
+        # Print each value of the array by using
+        # the loop
+        for value in ${newarray[@]}
+        do
+        echo "$value"
+        cat "$value"
+        echo ""
+        echo ""
+        done
