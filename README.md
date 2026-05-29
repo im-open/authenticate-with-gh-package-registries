@@ -88,10 +88,11 @@ The PAT needs to have the `read:packages` scope, it should be authorized for eac
 | Parameter        | Is Required | Default                                                                                    | Description                                                                                                                                                                                    |
 |------------------|-------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `read-pkg-token` | true        | N/A                                                                                        | A personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
-| `orgs`           | true        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |
+| `read-pkg-token-legacy` | true        | N/A                                                                                        | A legacy organization personal access token with the `read:packages` scope that has been authorized for use with each provided org and is from an account that has read access to the repo containing the package. |
+| `orgs`           | true        | wtw-bdoim | A comma-separated list of organizations that registry entries should be added for.                                                                                                             |
+| `orgs-legacy`           | false        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of legacy organizations that registry entries should be added for.                                                                                                             |
 | `setup-nuget`    | false       | true                                                                                       | Flag indicating whether to set each org as a nuget source or not.  Accepts: `true\|false`.                                                                                                     |
 | `setup-npm`      | false       | true                                                                                       | Flag indicating whether to set each org as an  npm registry or not.  Accepts: `true\|false`.                                                                                                   |
-| `use-second-github-token` | false | false                                                                                      | Use `READ_PACKAGE_TOKEN_SECOND` instead of `READ_PACKAGE_TOKEN` for package auth entries. Enable this when you need to authenticate package pulls with a token from a second GitHub account.         |
 | `show-config-file-contents` | false | false                                                                                     | Flag indicating whether to output `~/.npmrc` and `~/.nuget/NuGet/NuGet.Config` contents to workflow logs for debugging. Accepts: `true\|false`.                                                  |
 
 If you set `use-second-github-token: true`, pass the second account's PAT through `read-pkg-token` (for example, `secrets.READ_PKG_TOKEN_SECOND`).
@@ -119,7 +120,7 @@ jobs:
 
       - name: Authenticate with GitHub Packages on Windows
         # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.2.1
+        uses: im-open/authenticate-with-gh-package-registries@v2.0.0
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'myorg2,myorg2,octocoder'
@@ -130,7 +131,7 @@ jobs:
       - run: dotnet restore # nuget.config contains the creds for connecting and restoring nuget packages from GRP
 ```
 
-## Usage Example with use-second-github-token input
+## Usage Example with legacy-token input
 
 ```yml
 name: 'Build App with GitHub Packages Dependencies in multiple github enterprises / github accounts'
@@ -143,23 +144,17 @@ jobs:
     runs-on: windows-2019 # Works on Ubuntu-20.04 as well
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Authenticate with GitHub Packages on Windows
         # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.2.1
+        uses: im-open/authenticate-with-gh-package-registries@v2.0.0
         with:
           read-pkg-token: ${{ secrets.READ_PKG_TOKEN }} # Token has read:packages scope and is authorized for each of the orgs
+          read-pkg-token-legacy: ${{ secrets.READ_PKG_TOKEN_LEGACY }} # Token has read:packages scope and is authorized for each of the orgs
           orgs: 'my-first-account-org'
-
-      - name: Authenticate with GitHub Packages on Windows
-        # You may also reference the major or major.minor version
-        uses: im-open/authenticate-with-gh-package-registries@v1.2.1
-        with:
-          read-pkg-token: ${{ secrets.READ_PKG_TOKEN_SECOND }} # Token has read:packages scope and is authorized for each of the orgs
-          orgs: 'my-second-account-org'
-          use-second-github-token: true
-          show-config-file-contents: true # to see if the file is correct.  Not needed once pipeline is working properly.  Use for troubleshooting.
+          orgs-legacy: 'my-legacy-account-org'
+          nuget-package-source-mapping-pattern: 'my-org:Mktp*'
 
       - run: npm install # .npmrc contains contains the creds for connecting and installing npm packages from GPR
       - run: npm test

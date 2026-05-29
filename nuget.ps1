@@ -1,15 +1,19 @@
 Param(
     [parameter(Mandatory = $true)]
     [string]$rawOrgs,
+    [parameter(Mandatory = $false)]
+    [string]$rawOrgsLegacy,
     [parameter(Mandatory = $true)]
     [string]$runnerOs,
     [parameter(Mandatory = $false)]
-    [bool]$useSecondGithubToken = $false
+    [string]$nugetPackageSourceMappingPattern
 )
 
 Write-Host "Adding sources to a $runnerOs machine"
 $orgList = $rawOrgs.Split(',');
+$orgListLegacy = $rawOrgsLegacy.Split(',');
 $sourceRaw = dotnet nuget list source
+
 
 $myMatches = ($sourceRaw | select-string -pattern '\d\.\s*(.*)\s\[' -AllMatches).Matches
 if ($null -ne $myMatches)
@@ -42,11 +46,27 @@ foreach ($org in $orgList)
     }
     
     Write-Host "Adding the $org source..."
-    if ($useSecondGithubToken) {
-        dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN_SECOND% --store-password-in-clear-text
-        Write-Host "Adding $org source with the secondary GitHub token environment variable: READ_PACKAGE_TOKEN_SECOND"
-    } else {
-        dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN% --store-password-in-clear-text
-        Write-Host "Adding $org source with the default GitHub token environment variable: READ_PACKAGE_TOKEN"
-    }
+    dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN% --store-password-in-clear-text
 }
+
+foreach ($org in $orgListLegacy)
+{
+    $org = $org.Trim();
+    Write-Host "`nChecking $org..."
+    if ($sources.Contains($org)) 
+    {
+        Write-Host "The $org source is already present, removing..."
+        dotnet nuget remove source $org
+    }
+    else
+    {
+        Write-Host "The $org source does not exist"
+    }
+    
+    Write-Host "Adding the $org source..."
+    dotnet nuget add source https://nuget.pkg.github.com/$org/index.json --name $org --username USERNAME --password %READ_PACKAGE_TOKEN_LEGACY% --store-password-in-clear-text
+}
+
+. "$PSScriptRoot\nuget-add-package-source-mapping.ps1"
+
+Add-NuGetPackageSourceMapping -rawOrgs $rawOrgs -rawOrgsLegacy $rawOrgsLegacy -nugetPackageSourceMappingPattern $nugetPackageSourceMappingPattern
