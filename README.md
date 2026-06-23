@@ -93,6 +93,7 @@ The PAT needs to have the `read:packages` scope, it should be authorized for eac
 | `orgs-legacy`           | false        | im-client,im-customer-engagement,im-enrollment,im-funding,im-platform,im-practices,bc-swat | A comma-separated list of legacy organizations that registry entries should be added for.                                                                                                             |
 | `setup-nuget`    | false       | true                                                                                       | Flag indicating whether to set each org as a nuget source or not.  Accepts: `true\|false`.                                                                                                     |
 | `setup-npm`      | false       | true                                                                                       | Flag indicating whether to set each org as an  npm registry or not.  Accepts: `true\|false`.                                                                                                   |
+| `nuget-package-source-mapping-pattern` | false | N/A                                                                                     | Optional NuGet package source mapping patterns. Provide a comma-separated list of patterns (for example, `Mktp*`) to apply to all org sources, or org-specific entries using `org:pattern` (for example, `my-org:Mktp*`). Useful when package names overlap across feeds and you want deterministic restore behavior by forcing matching packages to resolve from specific sources. |
 | `show-config-file-contents` | false | false                                                                                     | Flag indicating whether to output `~/.npmrc` and `~/.nuget/NuGet/NuGet.Config` contents to workflow logs for debugging. Accepts: `true\|false`.                                                  |
 
 If you set `use-second-github-token: true`, pass the second account's PAT through `read-pkg-token` (for example, `secrets.READ_PKG_TOKEN_SECOND`).
@@ -185,7 +186,7 @@ This repo uses [git-version-lite] in its workflows to examine commit messages to
 
 ### Source Code Changes
 
-The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.  
+The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.
 
 If a PR contains source code changes, the README.md should be updated with the latest action version.  The [build-and-review-pr] workflow will ensure these steps are performed when they are required.  The workflow will provide instructions for completing these steps if the PR Author does not initially complete them.
 
@@ -197,7 +198,7 @@ If changes are made to the action's [source code], the [usage examples] section 
 
 ### Tests
 
-The [build-and-review-pr] workflow includes tests which are linked to a status check. That status check needs to succeed before a PR is merged to the default branch.  When a PR comes from a branch, the `GITHUB_TOKEN` has the necessary permissions required to run the tests successfully.  
+The [build-and-review-pr] workflow includes tests which are linked to a status check. That status check needs to succeed before a PR is merged to the default branch.  When a PR comes from a branch, the `GITHUB_TOKEN` has the necessary permissions required to run the tests successfully.
 
 When a PR comes from a fork, the tests won't have the necessary permissions to run since the `GITHUB_TOKEN` only has `read` access for all scopes. When a PR comes from a fork, the changes should be reviewed, then merged into an intermediate branch by repository owners so tests can be run against the PR changes.  Once the tests have passed, changes can be merged into the default branch.
 
